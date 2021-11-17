@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo List</title>
+    <link rel="stylesheet" href="css/style.min.css">
+    <script defer src="js/main.js"></script>
+</head>
+
+<body>
+
+    <section class="todo-list">
+        <div class="container">
+            <div class="todo-list__inner">
+
+                <div class="todo-list__main">
+                    <div class="todo-list__statistics">
+                        <div class="todo-list__statistics--item">
+                            <h6 class="todo-list__statistics--item__title">Completed:</h6>
+                            <span class="todo-list__statistics--item__num completed-statistic"></span>
+                        </div>
+                        <div class="todo-list__statistics--item todo-list__statistics--item__done">
+                            <h6 class="todo-list__statistics--item__title">Done:</h6>
+                            <span class="todo-list__statistics--item__num done-statistic"></span>
+                        </div>
+                        <div class="todo-list__statistics--item">
+                            <h6 class="todo-list__statistics--item__title">In Progress:</h6>
+                            <span class="todo-list__statistics--item__num inprogress-statistic"></span>
+                        </div>
+                        <div class="todo-list__statistics--item">
+                            <h6 class="todo-list__statistics--item__title">Canceled:</h6>
+                            <span class="todo-list__statistics--item__num canceled-statistic"></span>
+                        </div>
+                    </div>
+
+                    <div class="todo-list__content">
+                        <a class="todo-list__content--link" href="#">
+                            <img class="todo-list__content--img" src="images/plus.png" alt="plus icon">
+                            <span>Add new list</span>
+                        </a>
+                        <div class="todo-list__content--items"></div>
+                    </div>
+                </div>
+
+                <div class="todo-list__aside">
+                    <div class="todo-list__pie-chart"></div>
+                    <p class="todo-list__text">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Velit incidunt quisquam consequuntur
+                        nulla. Necessitatibus, nobis minima repudiandae dolores ipsa a! Error dolore ipsum quas esse
+                        fuga libero sunt corrupti quae.
+                    </p>
+                    <!-- <button class="todo-list__show-statistics">Show Statistics</button> -->
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</body>
+
+</html>
