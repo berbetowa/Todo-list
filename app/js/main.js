@@ -18,21 +18,21 @@ toDoList.prototype = {
     },
 
     /**
-     * Remove object 'lists' from array
+     * Remove object 'list' from array
      *
-     * @param {string} this
+     * @param {string} $self
      */
-    removeList: function (self) {
-        let item = self.closest('.todo-list__content--item'),
-            index = parseInt(item.querySelector('.todo-list__content--title').getAttribute('data-id')),
+    removeList: function ($self) {
+        let $item = $self.closest('.todo-list__content--item'),
+            index = parseInt($item.querySelector('.todo-list__content--title').getAttribute('data-id')),
             listRemoved = this.getLists();
-        if (confirm("Are you sure you want to remove this list?")) {
 
+        if (confirm("Are you sure you want to remove this list?")) {
             listRemoved.splice(this.getIndex(index), 1);
             this.setLists(listRemoved);
-
-            item.remove();
+            $item.remove();
         }
+        this.getStatistic();
     },
 
     /**
@@ -111,34 +111,32 @@ toDoList.prototype = {
     /**
      * Rename'list' object in array
      *
-     * @param {string} self
+     * @param {string} $self
      */
-    getListNameEdit: function (self) {
+    getListNameEdit: function ($self) {
+        let that = this,
+            $title = $self.closest('.todo-list__content--title'),
+            $saveButton = $title.querySelector('.save-icon'),
+            $contentName = $title.querySelector('.todo-list__content--name')
 
-        let that = this;
+        $contentName.style.pointerEvents = 'all';
+        $contentName.focus();
+        $self.style.display = 'none';
+        $saveButton.style.display = 'inline-block';
 
-        let editIconParent = self.closest('.todo-list__content--title'),
-            saveButton = editIconParent.querySelector('.save-icon');
-
-        editIconParent.querySelector('.todo-list__content--name').style.pointerEvents = 'all';
-        editIconParent.querySelector('.todo-list__content--name').focus();
-        self.style.display = 'none';
-        saveButton.style.display = 'inline-block';
-
-        saveButton.addEventListener('click', function (e) {
+        $saveButton.addEventListener('click', function (e) {
             e.stopPropagation();
 
-            let title = this.closest('.todo-list__content--title'),
-                index = parseInt(title.getAttribute('data-id')),
-                inputValue = title.querySelector('.todo-list__content--name').value,
-                listCreated = that.getLists();
+            let id = parseInt($title.getAttribute('data-id')),
+                inputValue = $contentName.value,
+                lists = that.getLists();
 
-            listCreated[that.getIndex(index)].name = inputValue;
-            that.setLists(listCreated);
+            lists[that.getIndex(id)].name = inputValue;
+            that.setLists(lists);
 
             this.style.display = 'none';
-            title.querySelector('.edit-icon').style.display = 'inline-block';
-            title.querySelector('.todo-list__content--name').style.pointerEvents = 'none';
+            $title.querySelector('.edit-icon').style.display = 'inline-block';
+            $contentName.style.pointerEvents = 'none';
         });
     },
 
@@ -150,10 +148,10 @@ toDoList.prototype = {
      */
     getIndex: function (id) {
         let index = false,
-            listCreated = this.getLists();
+            lists = this.getLists();
 
-        listCreated.forEach(function (item, i) {
-            if (item.id === id) {
+        lists.forEach(function (list, i) {
+            if (list.id === id) {
                 index = i
             }
         });
@@ -169,9 +167,10 @@ toDoList.prototype = {
      */
     getItemsIndex: function (listId, itemId) {
         let index = false,
-            listCreated = this.getLists();
+            lists = this.getLists(),
+            listIndex = this.getIndex(listId);
 
-        listCreated[listId].items.forEach(function (item, i) {
+        lists[listIndex].items.forEach(function (item, i) {
             if (item.id === itemId) {
                 index = i
             }
@@ -184,26 +183,23 @@ toDoList.prototype = {
      *
      * @param {string} self
      */
-    addNewListItem: function (self) {
-
-        let list = self.closest('.todo-list__content--list'),
-            title = list.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
-            id = parseInt(title.getAttribute('data-id')),
-            that = this,
-            listCreated = that.getLists(),
+    addNewListItem: function ($self) {
+        let that = this,
+            $list = $self.closest('.todo-list__content--list'),
+            $title = $list.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
+            id = parseInt($title.getAttribute('data-id')),
+            lists = that.getLists(),
             index = that.getIndex(id),
             idNumber = 0;
 
-        if (listCreated[index].items.length) {
+        if (lists[index].items.length) {
             idNumber = ++that.getLastId(index).id;
         }
 
-        list.append(that.createNewListItem('Item' + idNumber, idNumber));
+        $list.append(that.createNewListItem('Item' + idNumber, idNumber));
+        lists[index].items.push({ name: 'Item' + idNumber, id: idNumber, status: false, canceled: false });
 
-        listCreated[index].items.push({ name: 'Item' + idNumber, id: idNumber, status: false, canceled: false });
-
-        that.setLists(listCreated);
-
+        that.setLists(lists);
         that.getStatistic();
     },
 
@@ -216,11 +212,11 @@ toDoList.prototype = {
      * @param {boolean} canceled
      */
     getNewListItem: function (name, id, status, canceled) {
-        let listsParent = document.querySelector('.todo-list__content--items'),
-            lists = listsParent.querySelectorAll('.todo-list__content--item'),
+        let lists = document.querySelectorAll('.todo-list__content--item'),
             list = lists[lists.length - 1];
 
-        list.querySelector('.todo-list__content--list').append(this.createNewListItem(name, id, status, canceled));
+        list.querySelector('.todo-list__content--list')
+            .append(this.createNewListItem(name, id, status, canceled));
     },
 
     /**
@@ -228,19 +224,16 @@ toDoList.prototype = {
      *
      * @param {string} self
      */
-    changeStatus: function (self) {
-        let item = self.closest('.todo-list__content--list__item'),
-            itemId = parseInt(item.getAttribute('data-id')),
-            title = item.closest('.todo-list__content--list').closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
-            listId = parseInt(title.getAttribute('data-id')),
-            listCreated = this.getLists(),
+    changeStatus: function ($self) {
+        let itemId = parseInt($self.closest('.todo-list__content--list__item').getAttribute('data-id')),
+            $title = $self.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
+            listId = parseInt($title.getAttribute('data-id')),
+            lists = this.getLists(),
             indexItem = this.getItemsIndex(listId, itemId),
             indexList = this.getIndex(listId);
 
-        listCreated[indexList].items[indexItem].status = !listCreated[indexList].items[indexItem].status;
-
-        this.setLists(listCreated);
-
+        lists[indexList].items[indexItem].status = !lists[indexList].items[indexItem].status;
+        this.setLists(lists);
         this.getStatistic();
     },
 
@@ -249,20 +242,12 @@ toDoList.prototype = {
      *
      * @param {string} self
      */
-    removeItem: function (self) {
-        let item = self.closest('.todo-list__content--list__item'),
-            itemId = parseInt(item.getAttribute('data-id')),
-            title = item.closest('.todo-list__content--list').closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
-            listId = parseInt(title.getAttribute('data-id')),
-            indexItem = this.getItemsIndex(listId, itemId),
-            indexList = this.getIndex(listId),
-            listRemoved = this.getLists();
+    removeItem: function ($item, indexItem, lists, indexList) {
         if (confirm("Are you sure you want to remove this task?")) {
-            listRemoved[indexList].items.splice(indexItem, 1);
-            this.setLists(listRemoved);
+            lists[indexList].items.splice(indexItem, 1);
+            this.setLists(lists);
 
-            item.remove();
-
+            $item.remove();
             this.getStatistic();
         }
     },
@@ -272,33 +257,50 @@ toDoList.prototype = {
      *
      * @param {string} self
      */
-    getItemsNameEdit: function (self) {
-        let that = this;
-        let item = self.closest('.todo-list__content--list__item'),
-            saveButton = item.querySelector('.item__save-icon');
+    getItemsNameEdit: function ($self) {
+        let that = this,
+            $item = $self.closest('.todo-list__content--list__item'),
+            $saveButton = $item.querySelector('.item__save-icon'),
+            $contentText = $item.querySelector('.todo-list__content--text');
 
-        item.querySelector('.todo-list__content--text').style.pointerEvents = 'all';
-        item.querySelector('.todo-list__content--text').focus();
-        self.style.display = 'none';
-        saveButton.style.display = 'inline-block';
+        $contentText.style.pointerEvents = 'all';
+        $contentText.focus();
+        $self.style.display = 'none';
+        $saveButton.style.display = 'inline-block';
 
-        saveButton.addEventListener('click', function () {
-            let item = this.closest('.todo-list__content--list__item'),
-                itemId = parseInt(item.getAttribute('data-id')),
-                title = item.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
-                listId = parseInt(title.getAttribute('data-id')),
+        $saveButton.addEventListener('click', function () {
+            let itemId = parseInt($item.getAttribute('data-id')),
+                $title = $item.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
+                listId = parseInt($title.getAttribute('data-id')),
                 indexItem = that.getItemsIndex(listId, itemId),
                 indexList = that.getIndex(listId),
-                listCreated = that.getLists(),
-                inputValue = item.querySelector('.todo-list__content--text').value;
+                lists = that.getLists(),
+                inputValue = $contentText.value;
 
-            listCreated[indexList].items[indexItem].name = inputValue;
-            that.setLists(listCreated);
+            lists[indexList].items[indexItem].name = inputValue;
+            that.setLists(lists);
 
             this.style.display = 'none';
-            item.querySelector('.todo-list__content--text').style.pointerEvents = 'none';
-            item.querySelector('.item__edit-icon').style.display = 'inline-block';
+            $contentText.style.pointerEvents = 'none';
+            $item.querySelector('.item__edit-icon').style.display = 'inline-block';
         });
+    },
+
+    itemChange: function ($self, event) {
+        let that = this,
+            $item = $self.closest('.todo-list__content--list__item'),
+            itemId = parseInt($item.getAttribute('data-id')),
+            $title = $item.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
+            listId = parseInt($title.getAttribute('data-id')),
+            lists = that.getLists(),
+            indexItem = that.getItemsIndex(listId, itemId),
+            indexList = that.getIndex(listId);
+
+        if (event === 'cancellation') {
+            that.cancellationOfTheTask($item, indexItem, lists, indexList);
+        } else if (event === 'remove') {
+            that.removeItem($item, indexItem, lists, indexList);
+        }
     },
 
 
@@ -307,23 +309,11 @@ toDoList.prototype = {
      *
      * @param {string} self
      */
-    cancellationOfTheTask: function (self) {
-        let item = self.closest('.todo-list__content--list__item'),
-            itemId = parseInt(item.getAttribute('data-id')),
-            title = item.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
-            listId = parseInt(title.getAttribute('data-id')),
-            that = this,
-            listCreated = that.getLists(),
-            indexItem = that.getItemsIndex(listId, itemId),
-            indexList = that.getIndex(listId);
-
-        item.classList.add('_canceled');
-
-        listCreated[indexList].items[indexItem].canceled = true;
-
-        that.setLists(listCreated);
-
-        that.getStatistic();
+    cancellationOfTheTask: function ($item, indexItem, lists, indexList) {
+        $item.classList.add('_canceled');
+        lists[indexList].items[indexItem].canceled = true;
+        this.setLists(lists);
+        this.getStatistic();
     },
 
     /**
@@ -331,21 +321,21 @@ toDoList.prototype = {
      *
      * @param {string} self
      */
-    returnTask: function (self) {
-        let item = self.closest('.todo-list__content--list__item'),
-            itemId = parseInt(item.getAttribute('data-id')),
-            title = item.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
-            listId = parseInt(title.getAttribute('data-id')),
-            that = this;
-        listCreated = that.getLists(),
+    returnTask: function ($self) {
+        let that = this,
+            $item = $self.closest('.todo-list__content--list__item'),
+            itemId = parseInt($item.getAttribute('data-id')),
+            $title = $item.closest('.todo-list__content--item').querySelector('.todo-list__content--title'),
+            listId = parseInt($title.getAttribute('data-id')),
+            lists = that.getLists(),
             indexItem = that.getItemsIndex(listId, itemId),
             indexList = that.getIndex(listId);
 
-        item.classList.remove('_canceled');
+        $item.classList.remove('_canceled');
 
-        listCreated[indexList].items[indexItem].canceled = false;
+        lists[indexList].items[indexItem].canceled = false;
 
-        that.setLists(listCreated);
+        that.setLists(lists);
 
         that.getStatistic();
     },
@@ -360,9 +350,10 @@ toDoList.prototype = {
      * @return {string}
      */
     createNewListItem: function (name, id, status, canceled) {
-        let checked = '',
-            canceledClass = '',
-            that = this;
+        let that = this,
+            checked = '',
+            canceledClass = '';
+
         if (status) {
             checked = 'checked';
         }
@@ -389,18 +380,17 @@ toDoList.prototype = {
             that.changeStatus(this);
         });
         newListItem.querySelector('.item__remove-icon').addEventListener('click', function () {
-            that.removeItem(this);
+            that.itemChange(this, 'remove');
         });
         newListItem.querySelector('.item__edit-icon').addEventListener('click', function () {
             that.getItemsNameEdit(this);
         });
         newListItem.querySelector('.item__canceled-icon').addEventListener('click', function () {
-            that.cancellationOfTheTask(this);
+            that.itemChange(this, 'cancellation');
         });
         newListItem.querySelector('.item__return-icon').addEventListener('click', function () {
             that.returnTask(this);
         });
-
         return newListItem;
     },
 
@@ -411,9 +401,9 @@ toDoList.prototype = {
      * @param {number} inumber
      */
     createnewList: function (name, number) {
-        let $lists = document.querySelector('.todo-list__content--items'),
-            newList = document.createElement('div'),
-            that = this;
+        let that = this,
+            $lists = document.querySelector('.todo-list__content--items'),
+            newList = document.createElement('div');
 
         newList.className = 'todo-list__content--item';
         newList.innerHTML = ' <div data-id="' + number + '" class="todo-list__content--title">' +
@@ -436,12 +426,10 @@ toDoList.prototype = {
                     .classList.toggle('todo-list__content--item__active')
             })
         );
-
         newList.querySelector('.remove-icon').addEventListener('click', function (e) {
             e.preventDefault();
             that.removeList(this);
         });
-
         newList.querySelector('.edit-icon').addEventListener('click', function (e) {
             e.stopPropagation();
             that.getListNameEdit(this);
@@ -458,9 +446,11 @@ toDoList.prototype = {
      */
     init: function () {
         let that = this;
+
         if (!localStorage.getItem('lists')) {
             that.setLists([]);
         }
+
         that.getState();
         that.getStatistic();
 
@@ -486,7 +476,7 @@ toDoList.prototype = {
 
         listCreated.map(function (list) {
             listCount++;
-            let itemDone = 0;
+            let itemDone = '';
             list.items.map(function (item) {
                 count++;
 
@@ -515,7 +505,8 @@ toDoList.prototype = {
         document.querySelector('.inprogress-statistic').innerHTML = inProgress + '%';
         document.querySelector('.canceled-statistic').innerHTML = canceled + '%';
         document.querySelector('.completed-statistic').innerHTML = listCompleted + '%';
-        document.querySelector('.todo-list__pie-chart').style.background = 'conic-gradient(#fc6364 ' + canceled + '%, #feb633 ' + canceled + '% ' + (canceled + inProgress) + '%, #9acf66 ' + (canceled + inProgress) + '% 100%)';
+        document.querySelector('.todo-list__pie-chart').style.background = 'conic-gradient(#fc6364 ' +
+            canceled + '%, #feb633 ' + canceled + '% ' + (canceled + inProgress) + '%, #9acf66 ' + (canceled + inProgress) + '% 100%)';
     }
 }
 
